@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const encargadoCtrl = require('../controllers/encargadoPV.controller');
+const encargadoController = require('../controllers/encargadoPV.controller');
 
-router.get('/', encargadoCtrl.getAllEncargados);
+router.get('/', encargadoController.getAllEncargados);
+router.get('/:id', encargadoController.getEncargadoById);
+router.post('/', encargadoController.createEncargado);
+router.put('/:id', encargadoController.updateEncargado);
+router.delete('/:id', encargadoController.deleteEncargado);
 
 module.exports = router;

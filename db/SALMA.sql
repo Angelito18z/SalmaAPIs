@@ -79,7 +79,7 @@ CREATE TABLE recorridos (
   id_usuario INTEGER REFERENCES usuarios(id),
   estado VARCHAR NOT NULL,
   fecha DATE NOT NULL,
-  hora_inicio TIMESTAMP,
+  hora_inicio TIMESTAMP NOT NULL,
   hora_fin TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
