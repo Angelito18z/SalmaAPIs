@@ -12,7 +12,11 @@ async function login(req, res) {
 
   try {
     const result = await pool.query(
-      `SELECT * FROM usuarios WHERE correo = $1 AND deleted_at IS NULL LIMIT 1`,
+      `SELECT u.*, r.rol AS nombre_rol
+       FROM usuarios u
+       JOIN roles r ON u.id_rol = r.id
+       WHERE u.correo = $1 AND u.deleted_at IS NULL
+       LIMIT 1`,
       [correo]
     );
 
@@ -36,7 +40,7 @@ async function login(req, res) {
         id: usuario.id,
         correo: usuario.correo,
         nombre: usuario.nombre,
-        id_rol: usuario.id_rol,
+        rol: usuario.nombre_rol, // Usamos el nombre del rol
       },
       JWT_SECRET,
       { expiresIn: '5h' }
@@ -45,12 +49,18 @@ async function login(req, res) {
     activeSessions.set(usuario.id, token);
     delete usuario.contrasenia;
 
+    // Devolver el rol con nombre legible
+    usuario.rol = usuario.nombre_rol;
+    delete usuario.id_rol;
+    delete usuario.nombre_rol;
+
     res.json({ message: 'Login exitoso', usuario, token });
   } catch (err) {
     console.error('Error en login:', err);
     res.status(500).json({ error: 'Error en login' });
   }
 }
+
 
 
 //FUNCION DE LOGOUT

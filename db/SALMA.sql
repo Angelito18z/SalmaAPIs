@@ -1,3 +1,4 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 DROP TABLE IF EXISTS entregas CASCADE;
 DROP TABLE IF EXISTS recorrido_punto_venta CASCADE;
@@ -43,6 +44,8 @@ CREATE TABLE usuarios (
   nombre VARCHAR NOT NULL,
   apellido_paterno VARCHAR,
   apellido_materno VARCHAR,
+  telefono VARCHAR ,
+  numero_identificacion VARCHAR,
   id_rol INTEGER REFERENCES roles(id),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -79,7 +82,7 @@ CREATE TABLE recorridos (
   id_usuario INTEGER REFERENCES usuarios(id),
   estado VARCHAR NOT NULL,
   fecha DATE NOT NULL,
-  hora_inicio TIMESTAMP NOT NULL,
+  hora_inicio TIMESTAMP,
   hora_fin TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -170,11 +173,17 @@ EXECUTE FUNCTION actualizar_updated_at();
 
 INSERT INTO roles (rol) VALUES ('Administrador');
 INSERT INTO roles (rol) VALUES ('Repartidor');
+insert into roles (rol) values ('Encargado de Punto');
+insert into roles (rol) values ('Desarrollador');
 
-INSERT INTO usuarios (correo, contrasenia, nombre, apellido_paterno, apellido_materno, id_rol)
+
+INSERT INTO usuarios (correo, contrasenia, nombre, apellido_paterno, apellido_materno, telefono ,numero_identificacion, id_rol)
 VALUES 
-('admin@example.com', 'admin123', 'Carlos', 'Ramírez', 'Pérez', 1),
-('repartidor1@example.com', 'reparto123', 'Juan', 'López', 'Gómez', 2);
+('admin@example.com', 'admin123', 'Carlos', 'Ramírez', 'Pérez','552-123-4567','1', 1),
+('repartidor1@example.com', 'reparto123', 'Juan', 'López', 'Gómez','333-987-6543','5', 2),
+('encargadoPunto@example.com', 'encargado123', 'Roberto', 'Sanchez', 'Ramirez','818-555-1212','42',3),
+('angel@develop.com', '123456789', 'Jose Angel', 'Lopez', 'Rivera','271-153-1241','1',4),
+('villalobos@develop.com', '123456789', 'Jose Manuel', 'Lara', 'Villalobos','271-245-8039','2',4);
 
 INSERT INTO punto_venta (direccion, nombre, latitud, longitud)
 VALUES 
@@ -216,5 +225,5 @@ VALUES
 --------------------------------------------------------------------------------------
 
 
-SELECT * FROM usuarios WHERE deleted_at IS null
+SELECT * FROM usuarios u 
 

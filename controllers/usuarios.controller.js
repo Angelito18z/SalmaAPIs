@@ -4,7 +4,22 @@ const bcrypt = require('bcryptjs');
 // Obtener todos los usuarios
 const getUsuarios = async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM usuarios WHERE deleted_at IS NULL');
+    const result = await db.query(`
+      SELECT 
+        u.id,
+        u.correo,
+        u.nombre,
+        u.apellido_paterno,
+        u.apellido_materno,
+        u.telefono,
+        u.numero_identificacion,
+        r.rol AS rol,
+        u.created_at,
+        u.updated_at
+      FROM usuarios u
+      JOIN roles r ON u.id_rol = r.id
+      WHERE u.deleted_at IS NULL
+    `);
     res.json(result.rows);
   } catch (err) {
     console.error(err);
@@ -12,14 +27,32 @@ const getUsuarios = async (req, res) => {
   }
 };
 
+
 // Obtener un usuario por ID
 const getUsuarioById = async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await db.query('SELECT * FROM usuarios WHERE id = $1 AND deleted_at IS NULL', [id]);
+    const result = await db.query(`
+      SELECT 
+        u.id,
+        u.correo,
+        u.nombre,
+        u.apellido_paterno,
+        u.apellido_materno,
+        u.telefono,
+        u.numero_identificacion,
+        r.rol AS rol,
+        u.created_at,
+        u.updated_at
+      FROM usuarios u
+      JOIN roles r ON u.id_rol = r.id
+      WHERE u.id = $1 AND u.deleted_at IS NULL
+    `, [id]);
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
+
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
@@ -27,17 +60,39 @@ const getUsuarioById = async (req, res) => {
   }
 };
 
-// Crear un nuevo usuario
 const createUsuario = async (req, res) => {
-  const { correo, contrasenia, nombre, apellido_paterno, apellido_materno, id_rol } = req.body;
+  const {
+    correo,
+    contrasenia,
+    nombre,
+    apellido_paterno,
+    apellido_materno,
+    telefono,
+    numero_identificacion,
+    id_rol
+  } = req.body;
+
   try {
     const hashedPassword = await bcrypt.hash(contrasenia, 10); // 10 salt rounds
 
     const result = await db.query(
-      `INSERT INTO usuarios (correo, contrasenia, nombre, apellido_paterno, apellido_materno, id_rol)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [correo, hashedPassword, nombre, apellido_paterno, apellido_materno, id_rol]
+      `INSERT INTO usuarios (
+        correo, contrasenia, nombre, apellido_paterno, apellido_materno,
+        telefono, numero_identificacion, id_rol
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *`,
+      [
+        correo,
+        hashedPassword,
+        nombre,
+        apellido_paterno,
+        apellido_materno,
+        telefono,
+        numero_identificacion,
+        id_rol
+      ]
     );
+
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error(err);
