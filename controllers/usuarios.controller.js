@@ -1,4 +1,5 @@
 const db = require('../db');
+const bcrypt = require('bcryptjs');
 
 // Obtener todos los usuarios
 const getUsuarios = async (req, res) => {
@@ -30,10 +31,12 @@ const getUsuarioById = async (req, res) => {
 const createUsuario = async (req, res) => {
   const { correo, contrasenia, nombre, apellido_paterno, apellido_materno, id_rol } = req.body;
   try {
+    const hashedPassword = await bcrypt.hash(contrasenia, 10); // 10 salt rounds
+
     const result = await db.query(
       `INSERT INTO usuarios (correo, contrasenia, nombre, apellido_paterno, apellido_materno, id_rol)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [correo, contrasenia, nombre, apellido_paterno, apellido_materno, id_rol]
+      [correo, hashedPassword, nombre, apellido_paterno, apellido_materno, id_rol]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -47,6 +50,12 @@ const updateUsuario = async (req, res) => {
   const { id } = req.params;
   const { correo, contrasenia, nombre, apellido_paterno, apellido_materno, id_rol } = req.body;
   try {
+    let hashedPassword = contrasenia;
+    
+    if (contrasenia) {
+      hashedPassword = await bcrypt.hash(contrasenia, 10);
+    }
+
     const result = await db.query(
       `UPDATE usuarios
        SET correo = $1,
@@ -58,17 +67,20 @@ const updateUsuario = async (req, res) => {
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $7 AND deleted_at IS NULL
        RETURNING *`,
-      [correo, contrasenia, nombre, apellido_paterno, apellido_materno, id_rol, id]
+      [correo, hashedPassword, nombre, apellido_paterno, apellido_materno, id_rol, id]
     );
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado o eliminado' });
     }
+
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al actualizar el usuario' });
   }
 };
+
 
 // Eliminar (borrado lógico) un usuario
 const deleteUsuario = async (req, res) => {
